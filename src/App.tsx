@@ -3,23 +3,25 @@ import { initialAssets, initialAlerts, type Asset, type Alert } from './dataStor
 import { 
   Activity, 
   AlertTriangle, 
-  BarChart2, 
   Cpu, 
-  Database, 
   Droplet, 
   LayoutDashboard, 
   Radio, 
   ShieldAlert, 
   Thermometer, 
   TrendingUp,
-  Volume2,
   Zap,
   Lock,
   User,
   CheckCircle,
   X,
   LogOut,
-  Flame
+  Flame,
+  ChevronRight,
+  Shield,
+  Wifi,
+  Server,
+  Brain
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -28,11 +30,108 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer 
+  ResponsiveContainer,
+  AreaChart,
+  Area
 } from 'recharts';
+import enecLogo from './assets/enec_logo.png';
+
+const SystemFlow = () => (
+  <div style={{ marginBottom: '24px' }}>
+    <div className="retrofit-banner" style={{ background: 'linear-gradient(90deg, #eff6ff 0%, #ffffff 100%)', border: '1px solid #bfdbfe', color: '#1e3a8a', marginBottom: '16px', padding: '12px 20px', fontSize: '14px', lineHeight: '1.4' }}>
+      <Shield size={20} style={{ flexShrink: 0 }} />
+      <span>
+        <strong>POC Context:</strong> This POC demonstrates how wireless, battery-powered sensors can be deployed on existing equipment without wiring to enable real-time monitoring and predictive insights across pumps, motors, heaters, and electrical panels.
+      </span>
+    </div>
+    
+    <div className="system-flow" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0' }}>
+      <div className="flow-node" style={{ flex: 1, cursor: 'default' }}>
+        <div className="flow-icon-circle"><Wifi size={24} /></div>
+        <span className="flow-label">1. Sensors</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
+          Wireless, battery-powered capture of vibration, temp, & current.
+        </p>
+      </div>
+      <ChevronRight className="flow-arrow" size={20} style={{ marginTop: '24px' }} />
+      <div className="flow-node" style={{ flex: 1, cursor: 'default' }}>
+        <div className="flow-icon-circle"><Radio size={24} /></div>
+        <span className="flow-label">2. IoT Gateway (BLE/LoRa → Local Server)</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
+          Collects via BLE / LoRaWAN; relays to local server.
+        </p>
+      </div>
+      <ChevronRight className="flow-arrow" size={20} style={{ marginTop: '24px' }} />
+      <div className="flow-node" style={{ flex: 1, cursor: 'default' }}>
+        <div className="flow-icon-circle"><Server size={24} /></div>
+        <span className="flow-label">3. Local Platform</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
+          On-premise secure data processing and storage.
+        </p>
+      </div>
+      <ChevronRight className="flow-arrow" size={20} style={{ marginTop: '24px' }} />
+      <div className="flow-node" style={{ flex: 1, cursor: 'default' }}>
+        <div className="flow-icon-circle"><LayoutDashboard size={24} /></div>
+        <span className="flow-label">4. Dashboard</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
+          Real-time facility-wide monitoring and visualization.
+        </p>
+      </div>
+      <ChevronRight className="flow-arrow" size={20} style={{ marginTop: '24px' }} />
+      <div className="flow-node" style={{ flex: 1, cursor: 'default' }}>
+        <div className="flow-icon-circle"><Brain size={24} /></div>
+        <span className="flow-label">5. AI / Analytics</span>
+        <p style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'center', marginTop: '4px' }}>
+          Anomaly detection, trends, and failure prediction.
+        </p>
+      </div>
+    </div>
+  </div>
+);
+
+const ArchitectureIntro = ({ onContinue }: { onContinue: () => void }) => (
+  <div className="intro-container">
+    <div className="intro-content">
+      <div className="intro-header">
+        <img src={enecLogo} alt="ENEC Logo" style={{ height: '80px', marginBottom: '24px' }} />
+        <h2>Industrial IoT Architecture</h2>
+        <h1>Reliable Assets. Unified Intelligence.</h1>
+      </div>
+
+      <div className="intro-flow">
+        <div className="intro-node node-1">
+          <div className="intro-icon"><Wifi size={40} /></div>
+          <span className="intro-node-label">Sensors</span>
+          <span className="intro-node-desc">Wireless retrofit sensors for vibration & heat.</span>
+        </div>
+        <div className="intro-node node-2">
+          <div className="intro-icon"><Radio size={40} /></div>
+          <span className="intro-node-label">Gateway</span>
+          <span className="intro-node-desc">LoRaWAN/BLE Industrial Edge Gateway.</span>
+        </div>
+        <div className="intro-node node-3">
+          <div className="intro-icon"><Server size={40} /></div>
+          <span className="intro-node-label">Local Platform</span>
+          <span className="intro-node-desc">Secure on-prem data processing layer.</span>
+        </div>
+        <div className="intro-node node-4">
+          <div className="intro-icon"><LayoutDashboard size={40} /></div>
+          <span className="intro-node-label">Dashboard</span>
+          <span className="intro-node-desc">Real-time alerts & AI-driven diagnostics.</span>
+        </div>
+      </div>
+
+      <div className="intro-action">
+        <button className="primary-btn" onClick={onContinue} style={{ padding: '16px 48px', fontSize: '18px', borderRadius: '40px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 10px 20px rgba(37, 99, 235, 0.3)' }}>
+          Access Secure Platform <ChevronRight size={24} />
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [appPhase, setAppPhase] = useState<'intro' | 'login' | 'dashboard'>('intro');
   const [activeTab, setActiveTab] = useState<'overview' | 'pumps' | 'panels' | 'predictive'>('overview');
   const [assets, setAssets] = useState(initialAssets);
   const [alerts] = useState(initialAlerts);
@@ -41,61 +140,68 @@ function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       setAssets(currentAssets => currentAssets.map(asset => {
-        const tempFluctuation = (Math.random() - 0.5) * 0.5;
-        const vibFluctuation = (Math.random() - 0.5) * 0.1;
-        const currentFluctuation = asset.power > 0 ? (Math.random() - 0.5) * 2.0 : 0;
-        const acousticFluctuation = (Math.random() - 0.5) * 2.0;
+        const update: any = { ...asset, lastUpdated: new Date().toISOString() };
         
-        const newTemp = asset.temperature + tempFluctuation;
-        const newVib = asset.vibration + vibFluctuation;
-        const newCurrent = asset.power + currentFluctuation;
-        const newAcoustic = asset.acoustic + acousticFluctuation;
-        
-        return {
-          ...asset,
-          temperature: parseFloat(newTemp.toFixed(1)),
-          vibration: parseFloat(newVib.toFixed(2)),
-          power: asset.power > 0 ? parseFloat(newCurrent.toFixed(1)) : 0,
-          acoustic: parseFloat(newAcoustic.toFixed(1)),
-          lastUpdated: new Date().toISOString(),
-          history: [
-            ...asset.history.slice(1),
-            {
-              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-              temperature: parseFloat(newTemp.toFixed(1)),
-              vibration: parseFloat(newVib.toFixed(2)),
-              current: asset.power > 0 ? parseFloat(newCurrent.toFixed(1)) : 0,
-              acoustic: parseFloat(newAcoustic.toFixed(1)),
-            }
-          ]
+        if (asset.vibration !== undefined) {
+          update.vibration = parseFloat((asset.vibration + (Math.random() - 0.5) * 0.1).toFixed(2));
+        }
+        if (asset.current !== undefined) {
+          update.current = parseFloat((asset.current + (Math.random() - 0.5) * 0.5).toFixed(1));
+        }
+        if (asset.temperature !== undefined) {
+          update.temperature = parseFloat((asset.temperature + (Math.random() - 0.5) * 0.5).toFixed(1));
+        }
+
+        // Add to history
+        const newPoint: any = { 
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
         };
+        if (update.vibration !== undefined) newPoint.vibration = update.vibration;
+        if (update.current !== undefined) newPoint.current = update.current;
+        if (update.temperature !== undefined) newPoint.temperature = update.temperature;
+
+        update.history = [...asset.history.slice(1), newPoint];
+
+        // Update health status based on thresholds
+        if (update.vibration !== undefined) {
+          if (update.vibration > 6) update.status = 'critical';
+          else if (update.vibration > 3) update.status = 'warning';
+          else update.status = 'normal';
+        } else if (update.current !== undefined) {
+          if (update.current > 18) update.status = 'critical';
+          else if (update.current > 15) update.status = 'warning';
+          else update.status = 'normal';
+        } else if (update.temperature !== undefined) {
+          if (update.temperature > 80) update.status = 'critical';
+          else if (update.temperature > 60) update.status = 'warning';
+          else update.status = 'normal';
+        }
+
+        return update;
       }));
     }, 3000); 
     
     return () => clearInterval(interval);
   }, []);
 
-  const criticalCount = assets.filter(a => a.status === 'critical').length;
-  const warningCount = assets.filter(a => a.status === 'warning').length;
-  const normalCount = assets.filter(a => a.status === 'normal').length;
 
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  if (appPhase === 'intro') {
+    return <ArchitectureIntro onContinue={() => setAppPhase('login')} />;
+  }
+
+  if (appPhase === 'login') {
+    return <LoginPage onLogin={() => setAppPhase('dashboard')} />;
   }
 
   return (
     <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <div className="sidebar-header">
-          <Database color="var(--accent-blue)" />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ fontSize: '18px' }}>ENEC</h1>
-            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Monitoring Platform</span>
-          </div>
+        <div className="sidebar-header" style={{ padding: '16px' }}>
+          <img src={enecLogo} alt="ENEC Logo" className="branding-logo" style={{ height: '50px', width: 'auto' }} />
         </div>
         <div className="sidebar-nav">
-          <div className="nav-section-title">Modules</div>
+          <div className="nav-section-title">Operations</div>
           
           <div className={`nav-item ${activeTab === 'overview' ? 'active' : ''}`} onClick={() => setActiveTab('overview')}>
             <LayoutDashboard size={20} /> Dashboard Overview
@@ -117,25 +223,31 @@ function App() {
 
       {/* Main Content */}
       <main className="main-content">
-        <header className="topbar">
-          <div className="topbar-title">
-            {activeTab === 'overview' && 'Dashboard Overview'}
-            {activeTab === 'pumps' && 'Pump Health Monitoring'}
-            {activeTab === 'panels' && 'Thermal Hotspot Detection'}
-            {activeTab === 'predictive' && 'Predictive Maintenance Insights'}
+        <header className="main-header" style={{ marginBottom: '24px', paddingBottom: '24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Wireless Retrofit Monitoring
+            </h1>
+            <p style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500, maxWidth: '600px' }}>
+              Monitoring for pumps, motors, heaters, fans, and electrical panels.
+            </p>
           </div>
-          <div className="topbar-actions">
-            <Radio size={20} color="var(--status-normal)" />
-            <span style={{ fontSize: '14px', fontWeight: 500, color: 'var(--text-muted)' }}>Gateway: ONLINE</span>
-            <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)', margin: '0 8px' }}></div>
-            <div className="user-profile">
-              <div className="avatar">A</div>
-              <span>Admin</span>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div className="meta-badge meta-security" style={{ background: '#fef2f2', color: '#991b1b', border: '1px solid #fecaca' }}>
+              <Shield size={14} /> Isolated On-Prem
             </div>
-            <div style={{ height: '24px', width: '1px', backgroundColor: 'var(--border-color)', margin: '0 8px' }}></div>
+            <div style={{ height: '32px', width: '1px', backgroundColor: 'var(--border-color)' }}></div>
+            <div className="user-profile">
+              <div className="avatar" style={{ background: 'var(--accent-blue)' }}>A</div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontWeight: 700, fontSize: '13px' }}>Admin Portal</span>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Secure Access</span>
+              </div>
+            </div>
             <button 
-              onClick={() => setIsLoggedIn(false)}
-              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              onClick={() => setAppPhase('intro')}
+              style={{ background: 'transparent', border: '1px solid var(--border-color)', padding: '6px 12px', borderRadius: '6px', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600 }}
             >
               <LogOut size={16} /> Logout
             </button>
@@ -143,43 +255,39 @@ function App() {
         </header>
 
         <div className="dashboard-content">
+          {activeTab === 'overview' && <SystemFlow />}
           {activeTab === 'overview' && (
-            <div className="grid-4" style={{ marginBottom: '24px' }}>
-              <div className="panel kpi-card">
-                <span className="kpi-label">Total Assets Monitored</span>
-                <div className="kpi-value">{assets.length}</div>
+            <div className="grid-3" style={{ marginBottom: '24px' }}>
+              <div className="panel kpi-card" style={{ borderLeft: '4px solid var(--accent-blue)' }}>
+                <span className="kpi-label">Wireless Nodes Deployed</span>
+                <div className="kpi-value" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {assets.length}
+                  <span className="badge-wireless" style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '12px' }}>LoRaWAN</span>
+                </div>
                 <div className="kpi-footer">
-                  <span className="trend-up" style={{ color: 'var(--status-normal)' }}>+1 this week</span>
+                  <span style={{ color: 'var(--text-muted)' }}>100% Wireless Infrastructure</span>
                 </div>
               </div>
               
-              <div className="panel kpi-card">
-                <span className="kpi-label">Active Alerts</span>
-                <div className="kpi-value" style={{ color: alerts.filter(a => a.active).length > 0 ? 'var(--status-warning)' : 'var(--text-main)'}}>
-                  {alerts.filter(a => a.active).length}
+              <div className="panel kpi-card" style={{ borderLeft: '4px solid #f59e0b' }}>
+                <span className="kpi-label">Retrofit Assets Monitored</span>
+                <div className="kpi-value" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {assets.filter(a => a.installationType?.includes('Retrofit')).length}
+                  <span className="badge-retrofit" style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '12px' }}>Plug-and-Play</span>
                 </div>
                 <div className="kpi-footer">
-                  <span className="trend-down" style={{ color: 'var(--status-normal)' }}>2 resolved today</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Zero disruption installation</span>
                 </div>
               </div>
 
-              <div className="panel kpi-card">
-                <span className="kpi-label">Critical / Warning</span>
-                <div className="kpi-value" style={{ color: criticalCount > 0 ? 'var(--status-critical)' : 'var(--status-warning)' }}>
-                  {criticalCount} <span style={{ color: 'var(--text-muted)' }}>/</span> {warningCount}
+              <div className="panel kpi-card" style={{ borderLeft: '4px solid #10b981' }}>
+                <span className="kpi-label">No Wiring Installations</span>
+                <div className="kpi-value" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {assets.length}
+                  <span className="badge-battery" style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '12px' }}>Battery Powered</span>
                 </div>
                 <div className="kpi-footer">
-                  <span style={{ color: 'var(--text-muted)' }}>Requires attention</span>
-                </div>
-              </div>
-
-              <div className="panel kpi-card">
-                <span className="kpi-label">System Health</span>
-                <div className="kpi-value" style={{ color: 'var(--status-normal)' }}>
-                  {Math.round((normalCount / assets.length) * 100)}%
-                </div>
-                <div className="kpi-footer">
-                  <span style={{ color: 'var(--text-muted)' }}>Overall operational readiness</span>
+                  <span style={{ color: 'var(--text-muted)' }}>Avg Battery Life: 3.5 Years</span>
                 </div>
               </div>
             </div>
@@ -210,9 +318,12 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <Database color="var(--accent-blue)" size={40} style={{ marginBottom: '16px' }} />
-          <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '8px' }}>ENEC Monitoring Platform</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Emirates Nuclear Energy Corporation</p>
+          <img src={enecLogo} alt="ENEC Logo" style={{ height: '80px', marginBottom: '24px' }} />
+          <h1 style={{ fontSize: '24px', fontWeight: 800, marginBottom: '8px', color: 'var(--text-main)' }}>Monitoring Platform</h1>
+          <p style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Emirates Nuclear Energy Corporation</p>
+          <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+            <span className="meta-badge meta-security"><Shield size={12} /> Secure On-Prem</span>
+          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="login-form">
@@ -257,20 +368,26 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
 }
 
 function FacilityNetwork({ assets, alerts }: { assets: Asset[], alerts: Alert[] }) {
+  const resolvedAlerts = [
+    { id: 'ALT-RE-01', asset: 'PMP-101', issue: 'Minor Vib Deviation', resolved: '2026-03-23 14:20' },
+    { id: 'ALT-RE-02', asset: 'FAN-402', issue: 'Sensor Calibration', resolved: '2026-03-23 09:15' },
+    { id: 'ALT-RE-03', asset: 'MTR-A2', issue: 'Load Balancing', resolved: '2026-03-22 18:45' },
+  ];
+
   return (
-    <div className="grid-3">
+    <div className="grid-3" style={{ alignItems: 'start' }}>
       <div className="panel" style={{ gridColumn: 'span 2' }}>
         <div className="panel-header">
-          <div className="panel-title"><LayoutDashboard size={20} /> Asset Overview</div>
+          <div className="panel-title"><Activity size={20} /> Field Equipment & Sensor Mapping</div>
         </div>
         <table className="asset-list">
           <thead>
             <tr>
-              <th>Asset</th>
+              <th>Equipment / Sensor Mapping</th>
               <th>Type</th>
-              <th>Zone</th>
-              <th>Status</th>
-              <th>Telemetry (Temp / Vib)</th>
+              <th>Connectivity</th>
+              <th>Health Status</th>
+              <th>Real-time Telemetry</th>
             </tr>
           </thead>
           <tbody>
@@ -278,20 +395,32 @@ function FacilityNetwork({ assets, alerts }: { assets: Asset[], alerts: Alert[] 
               <tr key={asset.id}>
                 <td>
                   <div className="asset-name">
-                    <div style={{ fontWeight: 600 }}>{asset.id}</div>
-                    <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{asset.name}</div>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{asset.id}</div>
+                    <div style={{ fontSize: '13px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                      {asset.name} → {asset.type === 'Motor' ? 'Current (A)' : 
+                                      asset.type === 'Heater' || asset.type === 'Panel' ? 'Temp (°C)' : 
+                                      'Vibration (mm/s)'}
+                    </div>
                   </div>
                 </td>
                 <td>{asset.type}</td>
-                <td>{asset.zone}</td>
+                <td>
+                  <div className="connectivity-chip">
+                    <div className="connectivity-item"><Wifi size={12} style={{ color: 'var(--accent-blue)' }} /> LoRaWAN Node</div>
+                    <div className="connectivity-item"><Zap size={12} style={{ color: asset.batteryStatus! < 20 ? 'var(--status-critical)' : '#f59e0b' }} /> {asset.batteryStatus}% Battery</div>
+                    <div className="connectivity-item" style={{ color: '#10b981', fontWeight: 600 }}>No Wiring Required</div>
+                  </div>
+                </td>
                 <td>
                   <span className={`badge ${asset.status} ${asset.status === 'critical' ? 'pulse-critical' : ''}`}>
-                    {asset.status}
+                    {asset.status === 'normal' ? 'Healthy' : asset.status}
                   </span>
                 </td>
                 <td>
-                  <div style={{ fontWeight: 500 }}>
-                    {asset.temperature.toFixed(1)}°C <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>|</span> {asset.vibration.toFixed(2)}mm/s
+                  <div style={{ fontWeight: 700, color: asset.status === 'critical' ? 'var(--status-critical)' : 'inherit' }}>
+                    {asset.type === 'Pump' || asset.type === 'Fan' ? `${asset.vibration!.toFixed(2)} mm/s` : 
+                     asset.type === 'Motor' ? `${asset.current!.toFixed(1)} A` : 
+                     `${asset.temperature!.toFixed(1)} °C`}
                   </div>
                 </td>
               </tr>
@@ -311,17 +440,35 @@ function FacilityNetwork({ assets, alerts }: { assets: Asset[], alerts: Alert[] 
                 <AlertTriangle size={16} />
               </div>
               <div className="alert-content">
-                <h4>{alert.assetId} - {alert.assetName}</h4>
-                <p>{alert.message}</p>
+                <h4 style={{ fontWeight: 700 }}>{alert.assetId} - {alert.assetName}</h4>
+                <p style={{ fontWeight: 500 }}>{alert.message}</p>
                 <div className="alert-time">{new Date(alert.timestamp).toLocaleTimeString()}</div>
               </div>
             </div>
           ))}
           {alerts.filter(a => a.active).length === 0 && (
             <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)' }}>
-              No active alerts. System operating normally.
+              No active alerts. System healthy.
             </div>
           )}
+        </div>
+
+        <div className="panel-header" style={{ marginTop: '24px' }}>
+          <div className="panel-title" style={{ fontSize: '14px' }}>Resolved Alert History</div>
+        </div>
+        <div className="resolved-alerts">
+          {resolvedAlerts.map(ra => (
+            <div key={ra.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border-color)', fontSize: '12px' }}>
+              <div>
+                <div style={{ fontWeight: 600 }}>{ra.asset}</div>
+                <div style={{ color: 'var(--text-muted)' }}>{ra.issue}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ color: 'var(--status-normal)', fontWeight: 600 }}>RESOLVED</div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '10px' }}>{ra.resolved}</div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
@@ -342,7 +489,9 @@ function PumpHealth({ assets }: { assets: Asset[] }) {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {assets.map(pump => {
-            const healthScore = Math.max(0, Math.min(100, Math.round(100 - (pump.vibration - 1.0) * 8 - (pump.temperature - 40) * 1.5)));
+            const vibVal = pump.vibration || 1.5;
+            const tempVal = pump.temperature || 40;
+            const healthScore = Math.max(0, Math.min(100, Math.round(100 - (vibVal - 1.0) * 8 - (tempVal - 40) * 1.5)));
             let healthColor = 'var(--status-normal)';
             if (pump.status === 'warning') healthColor = 'var(--status-warning)';
             if (pump.status === 'critical') healthColor = 'var(--status-critical)';
@@ -354,10 +503,15 @@ function PumpHealth({ assets }: { assets: Asset[] }) {
                 className={`pump-card ${selectedPump.id === pump.id ? 'active' : ''}`}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                  <span style={{ fontWeight: 600 }}>{pump.id}</span>
-                  <span className={`badge ${pump.status}`}>{pump.status}</span>
+                  <span style={{ fontWeight: 700 }}>{pump.id}</span>
+                  <span className={`badge ${pump.status}`}>{pump.status === 'normal' ? 'Healthy' : pump.status}</span>
                 </div>
-                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>{pump.name}</div>
+                <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 500 }}>{pump.name}</div>
+                <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                  <span className="meta-badge badge-wireless">Wireless</span>
+                  <span className="meta-badge badge-battery">{pump.batteryStatus}% Batt</span>
+                  <span className="meta-badge badge-retrofit">Retrofit</span>
+                </div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: healthColor, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Activity size={12} /> Health Score: {healthScore}%
                 </div>
@@ -373,22 +527,24 @@ function PumpHealth({ assets }: { assets: Asset[] }) {
         </div>
         
         <div className="grid-3">
-          <div className="telemetry-box">
-            <div className="telemetry-label"><Thermometer size={16}/> Current Temperature</div>
-            <div className="telemetry-value">
-              {selectedPump.temperature.toFixed(1)}<span className="telemetry-unit">°C</span>
+          {selectedPump.temperature !== undefined && (
+            <div className="telemetry-box">
+              <div className="telemetry-label"><Thermometer size={16}/> Temperature</div>
+              <div className="telemetry-value">
+                {selectedPump.temperature.toFixed(1)}<span className="telemetry-unit">°C</span>
+              </div>
             </div>
-          </div>
-          <div className="telemetry-box">
+          )}
+          <div className="telemetry-box" style={{ borderColor: selectedPump.vibration! > 6 ? 'var(--status-critical)' : 'var(--border-color)' }}>
              <div className="telemetry-label"><Activity size={16}/> Vibration Velocity</div>
-            <div className="telemetry-value">
-              {selectedPump.vibration.toFixed(2)}<span className="telemetry-unit">mm/s</span>
+            <div className="telemetry-value" style={{ color: selectedPump.vibration! > 6 ? 'var(--status-critical)' : 'inherit' }}>
+              {selectedPump.vibration!.toFixed(2)}<span className="telemetry-unit">mm/s</span>
             </div>
           </div>
           <div className="telemetry-box">
-             <div className="telemetry-label"><Zap size={16}/> Motor Current</div>
-            <div className="telemetry-value">
-              {selectedPump.power.toFixed(1)}<span className="telemetry-unit">A</span>
+             <div className="telemetry-label"><CheckCircle size={16}/> Installation</div>
+            <div className="telemetry-value" style={{ fontSize: '1rem', color: '#10b981' }}>
+              {selectedPump.installationType}
             </div>
           </div>
         </div>
@@ -396,19 +552,18 @@ function PumpHealth({ assets }: { assets: Asset[] }) {
         <div className="chart-container">
           <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '16px' }}>Historical Trends</h4>
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={selectedPump.history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="left" stroke="#ef4444" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis yAxisId="right" orientation="right" stroke="#3b82f6" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }}
-                itemStyle={{ fontSize: '14px' }}
-              />
-              <Line isAnimationActive={false} yAxisId="left" type="monotone" dataKey="temperature" name="Temp °C" stroke="#ef4444" strokeWidth={2} dot={false} />
-              <Line isAnimationActive={false} yAxisId="right" type="monotone" dataKey="vibration" name="Vib mm/s" stroke="#3b82f6" strokeWidth={2} dot={false} />
-              <Line isAnimationActive={false} yAxisId="right" type="monotone" dataKey="current" name="Motor Current (A)" stroke="#f59e0b" strokeWidth={2} dot={false} />
-            </LineChart>
+              <LineChart data={selectedPump.history}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: 'var(--bg-panel)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
+                />
+                <Line isAnimationActive={false} type="monotone" dataKey="vibration" name="Vibration (mm/s)" stroke="var(--accent-blue)" strokeWidth={3} dot={false} />
+                {selectedPump.temperature !== undefined && (
+                  <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Temp (°C)" stroke="var(--status-critical)" strokeWidth={2} dot={false} />
+                )}
+              </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
@@ -443,67 +598,99 @@ function PredictiveMaintenance({ assets }: { assets: Asset[] }) {
             <div key={asset.id} className="prediction-card" style={{ flexDirection: 'column', padding: '24px', gap: '16px' }}>
               <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-start', width: '100%' }}>
                 <div className={`prediction-icon ${asset.status}`}>
-                  <BarChart2 size={24} />
+                  <Brain size={24} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                    <h3 style={{ fontSize: '18px', fontWeight: 600 }}>{asset.name} ({asset.id})</h3>
+                    <div>
+                      <h3 style={{ fontSize: '18px', fontWeight: 700 }}>{asset.id} Analysis</h3>
+                      <div style={{ fontSize: '14px', color: 'var(--text-muted)', fontWeight: 500 }}>{asset.name}</div>
+                    </div>
+                    <div className={`risk-level ${asset.status === 'critical' ? 'risk-high' : 'risk-medium'}`}>
+                      Failure Risk: {asset.status === 'critical' ? 'High' : 'Medium'}
+                    </div>
                   </div>
-                  <p style={{ color: '#cbd5e1', marginBottom: '16px' }}>{asset.prediction}</p>
+                  <p style={{ color: 'var(--text-main)', marginBottom: '16px', fontWeight: 500, borderLeft: '3px solid var(--accent-blue)', paddingLeft: '12px' }}>
+                    {asset.prediction}
+                  </p>
                 </div>
               </div>
 
-              <div style={{ backgroundColor: 'var(--bg-dark)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)', width: '100%' }}>
-                <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '12px' }}>Time-Series Anomaly Detection (Current vs Baseline)</h4>
+              <div style={{ backgroundColor: 'var(--bg-dark)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-color)', width: '100%' }}>
+                <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Pattern Deviation Analysis vs Baseline
+                </h4>
                 <div className="grid-3" style={{ gap: '16px' }}>
-                  <div style={{ padding: '12px', backgroundColor: 'var(--bg-panel)', borderRadius: '6px', border: asset.status === 'critical' ? '1px dashed var(--status-critical)' : '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}><Thermometer size={14} /> Temperature</div>
-                    <div style={{ fontSize: '20px', fontWeight: 700, margin: '4px 0', color: asset.status === 'critical' ? 'var(--status-critical)' : 'var(--text-main)' }}>{asset.temperature.toFixed(1)}°C</div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Baseline limit: 70.0°C</div>
+                  <div className="prediction-stat">
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {asset.current !== undefined ? <Zap size={14} /> : 
+                       asset.vibration !== undefined ? <Activity size={14} /> : 
+                       <Thermometer size={14} />} 
+                      Real-time Reading vs Baseline
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginTop: '4px' }}>
+                      <div style={{ fontSize: '28px', fontWeight: 800 }}>
+                        {asset.current !== undefined ? `${asset.current.toFixed(1)} A` : 
+                         asset.vibration !== undefined ? `${asset.vibration.toFixed(2)}` : 
+                         `${asset.temperature!.toFixed(1)}°C`}
+                      </div>
+                      <span className={`stat-diff ${asset.status === 'normal' ? 'negative' : 'positive'}`} style={{ fontSize: '14px' }}>
+                        {asset.status === 'normal' ? '-2%' : asset.status === 'warning' ? '+28%' : '+42%'} deviation
+                      </span>
+                    </div>
+                    <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>Failure Risk:</div>
+                      <span className={`badge risk-${asset.status === 'normal' ? 'low' : asset.status === 'warning' ? 'medium' : 'high'}`} style={{ padding: '4px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>
+                        {asset.status === 'normal' ? 'LOW' : asset.status === 'warning' ? 'MEDIUM' : 'HIGH'}
+                      </span>
+                    </div>
                   </div>
-                  <div style={{ padding: '12px', backgroundColor: 'var(--bg-panel)', borderRadius: '6px', border: '1px dashed var(--status-warning)' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}><Volume2 size={14} /> Acoustic (Abnormal Noise)</div>
-                    <div style={{ fontSize: '20px', fontWeight: 700, margin: '4px 0', color: 'var(--status-warning)' }}>{asset.acoustic.toFixed(1)} dB</div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Baseline: ~60.0 dB (Grinding detected)</div>
-                  </div>
-                  <div style={{ padding: '12px', backgroundColor: 'var(--bg-panel)', borderRadius: '6px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '6px' }}><Zap size={14} /> Motor Current (Load behavior)</div>
-                    <div style={{ fontSize: '20px', fontWeight: 700, margin: '4px 0' }}>{asset.power.toFixed(1)} A</div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>Load tracking slightly elevated.</div>
-                  </div>
+                </div>
+
+                <div style={{ height: '120px', marginTop: '20px' }}>
+                   <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={asset.history}>
+                      <defs>
+                        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={asset.status === 'critical' ? 'var(--status-critical)' : 'var(--accent-blue)'} stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor={asset.status === 'critical' ? 'var(--status-critical)' : 'var(--accent-blue)'} stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                      <XAxis dataKey="time" hide />
+                      <YAxis hide domain={['auto', 'auto']} />
+                      <Tooltip 
+                        contentStyle={{ backgroundColor: 'var(--bg-panel)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
+                      />
+                      <Area type="monotone" dataKey="vibration" stroke={asset.status === 'critical' ? 'var(--status-critical)' : 'var(--accent-blue)'} fillOpacity={1} fill="url(#colorValue)" strokeWidth={3} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
               
               <div className="prediction-details" style={{ width: '100%', marginTop: '0', paddingTop: '16px' }}>
                 <div>
-                  <span className="detail-label">Time to Failure (Est)</span>
-                  <span className="detail-value" style={{ color: 'var(--text-main)' }}>
-                    {asset.status === 'critical' ? '< 24 Hours' : '3-5 Days'}
+                  <span className="detail-label">Est. Time to Failure</span>
+                  <span className="detail-value" style={{ color: asset.status === 'critical' ? 'var(--status-critical)' : 'var(--text-main)', fontSize: '16px' }}>
+                    {asset.status === 'critical' ? '18 Hours (High Urgency)' : '4-6 Days (Monitor)'}
                   </span>
                 </div>
                 <div>
-                  <span className="detail-label">Pattern Deviation Alert</span>
-                  <span className="detail-value" style={{ color: 'var(--status-warning)' }}>
-                    {asset.temperature > 80 ? 'Thermal Drift' : asset.acoustic > 90 ? 'Acoustic / Vibration Variance' : 'Load Tracking Elevated'}
-                  </span>
+                  <span className="detail-label">Confidence Score</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ flex: 1, height: '6px', backgroundColor: 'var(--bg-dark)', borderRadius: '3px' }}>
+                      <div style={{ width: asset.status === 'critical' ? '94%' : '78%', height: '100%', backgroundColor: 'var(--status-normal)', borderRadius: '3px' }}></div>
+                    </div>
+                    <span style={{ fontWeight: 700 }}>{asset.status === 'critical' ? '94%' : '78%'}</span>
+                  </div>
                 </div>
-                <div>
-                  <span className="detail-label">Recommended Action</span>
+                <div style={{ textAlign: 'right' }}>
                   <button 
+                    className="primary-btn"
                     onClick={() => initiateWorkOrder(asset)}
-                    style={{ 
-                      backgroundColor: 'transparent',
-                      border: 'none',
-                      color: 'var(--accent-blue)', 
-                      cursor: 'pointer', 
-                      textDecoration: 'underline',
-                      padding: 0,
-                      fontFamily: 'inherit',
-                      fontSize: 'inherit',
-                      fontWeight: 600
-                    }}
+                    style={{ padding: '8px 16px', fontSize: '13px' }}
                   >
-                    Schedule Work Order
+                    Generate Actionable Work Order
                   </button>
                 </div>
               </div>
@@ -641,13 +828,20 @@ function ElectricalPanels({ assets }: { assets: Asset[] }) {
             <div 
               key={panel.id} 
               onClick={() => setSelectedPanelId(panel.id)}
-              className={`pump-card ${selectedPanel.id === panel.id ? 'active' : ''}`}
+              className={`thermal-card ${selectedPanel.id === panel.id ? 'active' : ''}`}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <span style={{ fontWeight: 600 }}>{panel.id}</span>
-                <span className={`badge ${panel.status}`}>{panel.status}</span>
+                <span style={{ fontWeight: 700 }}>{panel.id}</span>
+                <span className={`badge ${panel.status}`}>{panel.status === 'normal' ? 'Healthy' : panel.status}</span>
               </div>
-              <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>{panel.name}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{panel.name}</div>
+              <div style={{ display: 'flex', gap: '4px', marginTop: '8px' }}>
+                <span className="meta-badge badge-wireless" style={{ fontSize: '8px', padding: '1px 4px' }}>Wireless</span>
+                <span className="meta-badge badge-retrofit" style={{ fontSize: '8px', padding: '1px 4px' }}>Retrofit</span>
+              </div>
+              <div style={{ fontWeight: 800, fontSize: '18px', marginTop: '8px' }}>
+                {panel.temperature?.toFixed(1)}°C
+              </div>
             </div>
           ))}
         </div>
@@ -659,22 +853,22 @@ function ElectricalPanels({ assets }: { assets: Asset[] }) {
         </div>
         
         <div className="grid-3">
-          <div className="telemetry-box" style={{ borderColor: selectedPanel.temperature > 70 ? 'var(--status-critical)' : selectedPanel.temperature > 50 ? 'var(--status-warning)' : 'var(--border-color)' }}>
+          <div className="telemetry-box" style={{ borderColor: selectedPanel.status !== 'normal' ? (selectedPanel.status === 'critical' ? 'var(--status-critical)' : 'var(--status-warning)') : 'var(--border-color)' }}>
             <div className="telemetry-label"><Thermometer size={16}/> IR Temperature</div>
-            <div className="telemetry-value" style={{ color: selectedPanel.temperature > 70 ? 'var(--status-critical)' : 'inherit' }}>
-              {selectedPanel.temperature.toFixed(1)}<span className="telemetry-unit">°C</span>
+            <div className="telemetry-value" style={{ color: selectedPanel.status !== 'normal' ? (selectedPanel.status === 'critical' ? 'var(--status-critical)' : 'var(--status-warning)') : 'inherit' }}>
+              {selectedPanel.temperature!.toFixed(1)}<span className="telemetry-unit">°C</span>
             </div>
           </div>
           <div className="telemetry-box">
-             <div className="telemetry-label"><Zap size={16}/> Load Power</div>
-            <div className="telemetry-value">
-              {selectedPanel.power.toFixed(1)}<span className="telemetry-unit">kW</span>
-            </div>
-          </div>
-          <div className="telemetry-box">
-             <div className="telemetry-label"><Activity size={16}/> Panel Health</div>
+             <div className="telemetry-label"><CheckCircle size={16}/> Health Status</div>
             <div className="telemetry-value" style={{ textTransform: 'capitalize', color: selectedPanel.status === 'critical' ? 'var(--status-critical)' : selectedPanel.status === 'warning' ? 'var(--status-warning)' : 'var(--status-normal)' }}>
-              {selectedPanel.status}
+              {selectedPanel.status === 'normal' ? 'Healthy' : selectedPanel.status}
+            </div>
+          </div>
+          <div className="telemetry-box">
+             <div className="telemetry-label"><Shield size={16}/> Protocol</div>
+            <div className="telemetry-value" style={{ fontSize: '1rem' }}>
+              Secure On-Prem
             </div>
           </div>
         </div>
@@ -683,14 +877,13 @@ function ElectricalPanels({ assets }: { assets: Asset[] }) {
           <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '16px' }}>Thermal Trend Analysis</h4>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={selectedPanel.history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-              <XAxis dataKey="time" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis domain={[0, 100]} stroke="#ef4444" fontSize={12} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+              <XAxis dataKey="time" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
+              <YAxis domain={['auto', 'auto']} stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }}
-                itemStyle={{ fontSize: '14px' }}
+                contentStyle={{ backgroundColor: 'var(--bg-panel)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
               />
-              <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Temp °C" stroke="#ef4444" strokeWidth={2} dot={false} />
+              <Line isAnimationActive={false} type="monotone" dataKey="temperature" name="Temp °C" stroke="var(--status-critical)" strokeWidth={3} dot={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>

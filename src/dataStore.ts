@@ -6,12 +6,18 @@ export interface Asset {
   type: 'Pump' | 'Motor' | 'Heater' | 'Fan' | 'Panel';
   zone: string;
   status: AssetStatus;
-  temperature: number;
-  vibration: number;
-  power: number;
-  acoustic: number; // dB
+  vibration?: number;   // mm/s
+  current?: number;     // A
+  temperature?: number; // °C
+  batteryStatus?: number; // %
+  installationType?: string;
   lastUpdated: string;
-  history: { time: string; temperature: number; vibration: number; current: number; acoustic: number }[];
+  history: {
+    time: string;
+    vibration?: number;
+    current?: number;
+    temperature?: number;
+  }[];
   prediction: string | null;
 }
 
@@ -19,25 +25,33 @@ export interface Alert {
   id: string;
   assetId: string;
   assetName: string;
-  type: 'vibration' | 'temperature' | 'power' | 'system';
+  type: 'vibration' | 'temperature' | 'current' | 'system';
   severity: 'warning' | 'critical';
   message: string;
   timestamp: string;
   active: boolean;
 }
 
-const generateHistory = (baseTemp: number, baseVib: number, baseCurrent: number = 100, baseAcoustic: number = 60) => {
+const generateHistory = (type: 'Pump' | 'Motor' | 'Heater' | 'Fan' | 'Panel', baseVal: number, baseTemp?: number) => {
   const history = [];
   const now = new Date();
   for (let i = 24; i >= 0; i--) {
     const time = new Date(now.getTime() - i * 5 * 60000);
-    history.push({
+    const point: any = {
       time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      temperature: baseTemp + (Math.random() * 5 - 2.5),
-      vibration: baseVib + (Math.random() * 0.5 - 0.25),
-      current: baseCurrent > 0 ? baseCurrent + (Math.random() * 5 - 2.5) : 0,
-      acoustic: baseAcoustic + (Math.random() * 3 - 1.5),
-    });
+    };
+
+    if (type === 'Pump' || type === 'Fan') {
+      point.vibration = baseVal + (Math.random() * 0.4 - 0.2);
+      if (baseTemp) point.temperature = baseTemp + (Math.random() * 2 - 1);
+    } else if (type === 'Motor') {
+      point.current = baseVal + (Math.random() * 1.5 - 0.75);
+      if (baseTemp) point.temperature = baseTemp + (Math.random() * 2 - 1);
+    } else if (type === 'Heater' || type === 'Panel') {
+      point.temperature = baseVal + (Math.random() * 2 - 1);
+    }
+
+    history.push(point);
   }
   return history;
 };
@@ -49,12 +63,12 @@ export const initialAssets: Asset[] = [
     type: 'Pump',
     zone: 'Zone 1 - Main Reactor',
     status: 'normal',
-    temperature: 45.2,
     vibration: 2.1,
-    power: 120,
-    acoustic: 62.5,
+    temperature: 42.5,
+    batteryStatus: 92,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(45.2, 2.1, 120, 62.5),
+    history: generateHistory('Pump', 2.1, 42.5),
     prediction: null,
   },
   {
@@ -63,52 +77,46 @@ export const initialAssets: Asset[] = [
     type: 'Pump',
     zone: 'Zone 1 - Main Reactor',
     status: 'warning',
-    temperature: 58.7,
     vibration: 4.8,
-    power: 135,
-    acoustic: 78.2,
+    temperature: 58.0,
+    batteryStatus: 84,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(56.0, 4.2, 135, 72.0).map((h, i) => ({
+    history: generateHistory('Pump', 4.8, 55.0).map((h, i) => ({
       ...h,
-      temperature: h.temperature + (i > 15 ? i * 0.2 : 0),
-      vibration: h.vibration + (i > 18 ? i * 0.05 : 0),
-      current: h.current + (i > 15 ? i * 1.5 : 0),
-      acoustic: h.acoustic + (i > 15 ? i * 0.5 : 0)
+      vibration: h.vibration! + (i > 15 ? i * 0.05 : 0)
     })),
-    prediction: 'Potential bearing failure risk in 5 days due to increasing vibration trend.',
+    prediction: '+28% vibration spike detected. Pattern deviation vs baseline. Failure risk: Medium.',
   },
   {
-    id: 'MTR-201',
-    name: 'Ventilation Motor North',
+    id: 'MTR-A2',
+    name: 'Ventilation Motor A2',
     type: 'Motor',
     zone: 'Zone 2 - Auxiliary',
     status: 'critical',
+    current: 18.5,
     temperature: 82.5,
-    vibration: 7.2,
-    power: 210,
-    acoustic: 95.5,
+    batteryStatus: 78,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(75.0, 6.0, 210, 85.0).map((h, i) => ({
+    history: generateHistory('Motor', 12.0, 75.0).map((h, i) => ({
       ...h,
-      temperature: h.temperature + (i > 10 ? i * 0.5 : 0),
-      vibration: h.vibration + (i > 20 ? i * 0.2 : 0),
-      current: h.current + (i > 12 ? i * 2.0 : 0),
-      acoustic: h.acoustic + (i > 15 ? i * 1.0 : 0)
+      current: h.current! + (i > 10 ? i * 0.5 : 0),
+      temperature: h.temperature! + (i > 12 ? i * 0.5 : 0)
     })),
-    prediction: 'Imminent failure warning: Temperature and vibration exceeding critical thresholds.',
+    prediction: 'Critical current overload detected vs baseline. Thermal drift +42%. Failure risk: High.',
   },
   {
-    id: 'HTR-305',
-    name: 'Pre-heater Unit C',
+    id: 'HTR-3',
+    name: 'Pre-heater Unit 3',
     type: 'Heater',
     zone: 'Zone 3 - Processing',
     status: 'normal',
-    temperature: 120.4,
-    vibration: 0.5,
-    power: 450,
-    acoustic: 55.0,
+    temperature: 55.4,
+    batteryStatus: 88,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(120.0, 0.5, 450, 55.0),
+    history: generateHistory('Heater', 55.4),
     prediction: null,
   },
   {
@@ -117,12 +125,12 @@ export const initialAssets: Asset[] = [
     type: 'Fan',
     zone: 'Zone 2 - Auxiliary',
     status: 'normal',
-    temperature: 38.6,
     vibration: 1.8,
-    power: 45,
-    acoustic: 68.5,
+    temperature: 38.6,
+    batteryStatus: 95,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(38.6, 1.8, 45, 68.5),
+    history: generateHistory('Fan', 1.8, 38.6),
     prediction: null,
   },
   {
@@ -131,26 +139,24 @@ export const initialAssets: Asset[] = [
     type: 'Pump',
     zone: 'Zone 1 - Main Reactor',
     status: 'normal',
-    temperature: 41.0,
-    vibration: 1.5,
-    power: 0, // Standby
-    acoustic: 45.0,
+    vibration: 1.2,
+    batteryStatus: 99,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(41.0, 1.5, 0, 45.0),
+    history: generateHistory('Pump', 1.2),
     prediction: null,
   },
   {
-    id: 'PNL-501',
-    name: 'Main Switchgear Panel 1',
+    id: 'PNL-3',
+    name: 'Main Switchgear Panel 3',
     type: 'Panel',
     zone: 'Electrical Room A',
     status: 'normal',
-    temperature: 32.5,
-    vibration: 0,
-    power: 800,
-    acoustic: 30.0,
+    temperature: 35.2,
+    batteryStatus: 82,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(32.5, 0, 800, 30.0),
+    history: generateHistory('Panel', 35.2),
     prediction: null,
   },
   {
@@ -159,12 +165,11 @@ export const initialAssets: Asset[] = [
     type: 'Panel',
     zone: 'Electrical Room B',
     status: 'normal',
-    temperature: 35.8,
-    vibration: 0,
-    power: 450,
-    acoustic: 32.0,
+    temperature: 38.5,
+    batteryStatus: 86,
+    installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
-    history: generateHistory(35.8, 0, 450, 32.0),
+    history: generateHistory('Panel', 38.5),
     prediction: null,
   }
 ];
@@ -172,11 +177,11 @@ export const initialAssets: Asset[] = [
 export const initialAlerts: Alert[] = [
   {
     id: 'ALT-001',
-    assetId: 'MTR-201',
-    assetName: 'Ventilation Motor North',
-    type: 'temperature',
+    assetId: 'MTR-A2',
+    assetName: 'Ventilation Motor A2',
+    type: 'current',
     severity: 'critical',
-    message: 'Temperature exceeded critical threshold (80°C). Immediate inspection required.',
+    message: 'Current overload (18.5 A) exceeded high limit. Immediate check required.',
     timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
     active: true,
   },
@@ -186,7 +191,7 @@ export const initialAlerts: Alert[] = [
     assetName: 'Auxiliary Coolant Pump B',
     type: 'vibration',
     severity: 'warning',
-    message: 'Vibration deviation detected (4.8mm/s). Suggest scheduling maintenance.',
+    message: 'Vibration high (4.8 mm/s). Vibration deviation detected.',
     timestamp: new Date(Date.now() - 25 * 60000).toISOString(),
     active: true,
   }
