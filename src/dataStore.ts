@@ -10,6 +10,7 @@ export interface Asset {
   current?: number;     // A
   temperature?: number; // °C
   batteryStatus?: number; // %
+  rssi?: number; // dBm
   installationType?: string;
   lastUpdated: string;
   history: {
@@ -66,6 +67,7 @@ export const initialAssets: Asset[] = [
     vibration: 2.1,
     temperature: 42.5,
     batteryStatus: 92,
+    rssi: -61,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Pump', 2.1, 42.5),
@@ -80,6 +82,7 @@ export const initialAssets: Asset[] = [
     vibration: 4.8,
     temperature: 58.0,
     batteryStatus: 84,
+    rssi: -68,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Pump', 4.8, 55.0).map((h, i) => ({
@@ -97,6 +100,7 @@ export const initialAssets: Asset[] = [
     current: 18.5,
     temperature: 82.5,
     batteryStatus: 78,
+    rssi: -82,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Motor', 12.0, 75.0).map((h, i) => ({
@@ -114,6 +118,7 @@ export const initialAssets: Asset[] = [
     status: 'normal',
     temperature: 55.4,
     batteryStatus: 88,
+    rssi: -72,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Heater', 55.4),
@@ -128,6 +133,7 @@ export const initialAssets: Asset[] = [
     vibration: 1.8,
     temperature: 38.6,
     batteryStatus: 95,
+    rssi: -58,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Fan', 1.8, 38.6),
@@ -140,7 +146,8 @@ export const initialAssets: Asset[] = [
     zone: 'Zone 1 - Main Reactor',
     status: 'normal',
     vibration: 1.2,
-    batteryStatus: 99,
+    batteryStatus: 92,
+    rssi: -65,
     installationType: 'Retrofit - No Wiring',
     lastUpdated: new Date().toISOString(),
     history: generateHistory('Pump', 1.2),

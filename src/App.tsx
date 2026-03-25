@@ -131,9 +131,9 @@ const ArchitectureIntro = ({ onContinue }: { onContinue: () => void }) => (
 );
 
 function App() {
-  const [appPhase, setAppPhase] = useState<'intro' | 'login' | 'dashboard'>('intro');
-  const [activeTab, setActiveTab] = useState<'overview' | 'pumps' | 'panels' | 'predictive'>('overview');
-  const [assets, setAssets] = useState(initialAssets);
+  const [appPhase, setAppPhase] = useState<'intro' | 'login' | 'setup' | 'dashboard'>('intro');
+  const [activeTab, setActiveTab] = useState<'overview' | 'pumps' | 'panels' | 'predictive' | 'inventory'>('overview');
+  const [assets, setAssets] = useState<Asset[]>([]); // Start empty to simulate connection process
   const [alerts] = useState(initialAlerts);
 
   // Simulation effect
@@ -190,7 +190,11 @@ function App() {
   }
 
   if (appPhase === 'login') {
-    return <LoginPage onLogin={() => setAppPhase('dashboard')} />;
+    return <LoginPage onLogin={() => setAppPhase('setup')} />;
+  }
+
+  if (appPhase === 'setup') {
+    return <SetupScreen onComplete={() => setAppPhase('dashboard')} onConnectAsset={(asset) => setAssets(prev => [...prev, asset])} />;
   }
 
   return (
@@ -217,6 +221,11 @@ function App() {
           
           <div className={`nav-item ${activeTab === 'predictive' ? 'active' : ''}`} onClick={() => setActiveTab('predictive')}>
             <TrendingUp size={20} /> Predictive Maint.
+          </div>
+
+          <div className="nav-section-title" style={{ marginTop: '24px' }}>IoT Infrastructure</div>
+          <div className={`nav-item ${activeTab === 'inventory' ? 'active' : ''}`} onClick={() => setActiveTab('inventory')}>
+            <Cpu size={20} /> Sensor Inventory
           </div>
         </div>
       </aside>
@@ -297,9 +306,243 @@ function App() {
           {activeTab === 'pumps' && <PumpHealth assets={assets.filter(a => a.type === 'Pump')} />}
           {activeTab === 'panels' && <ElectricalPanels assets={assets.filter(a => a.type === 'Panel')} />}
           {activeTab === 'predictive' && <PredictiveMaintenance assets={assets} />}
+          {activeTab === 'inventory' && <SensorInventory assets={assets} onAddAsset={(a) => setAssets(prev => [...prev, a])} />}
           
         </div>
       </main>
+    </div>
+  );
+}
+
+function SetupScreen({ onComplete, onConnectAsset }: { onComplete: () => void, onConnectAsset: (asset: Asset) => void }) {
+  const [isScanning, setIsScanning] = useState(false);
+  const [discovered, setDiscovered] = useState<Asset[]>([]);
+  const [connected, setConnected] = useState<Asset[]>([]);
+  const [progress, setProgress] = useState(0);
+
+  const startScan = () => {
+    setIsScanning(true);
+    setProgress(0);
+    setDiscovered([]);
+    
+    // Simulate scanning progress
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setIsScanning(false);
+          setDiscovered(initialAssets);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 50);
+  };
+
+  const connectAsset = (asset: Asset) => {
+    if (connected.find(a => a.id === asset.id)) return;
+    
+    setConnected(prev => [...prev, asset]);
+    onConnectAsset(asset);
+  };
+
+  const connectAll = () => {
+    const newAssets = discovered.filter(d => !connected.find(c => c.id === d.id));
+    setConnected(prev => [...prev, ...newAssets]);
+    newAssets.forEach(a => onConnectAsset(a));
+  };
+
+  return (
+    <div className="setup-container" style={{ 
+      minHeight: '100vh', 
+      width: '100vw', 
+      backgroundColor: 'var(--bg-dark)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '40px 20px',
+      background: 'radial-gradient(circle at top right, #f8fafc 0%, #f1f5f9 100%)'
+    }}>
+      <div style={{ maxWidth: '900px', width: '100%' }}>
+        <header style={{ textAlign: 'center', marginBottom: '40px' }}>
+          <img src={enecLogo} alt="ENEC Logo" style={{ height: '60px', marginBottom: '24px' }} />
+          <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-main)', marginBottom: '12px' }}>
+            Wireless Device Provisioning
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '18px', fontWeight: 500 }}>
+            Connect and verify industrial IoT sensors for your facility.
+          </p>
+        </header>
+
+        <div className="grid-2" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.5fr)', alignItems: 'start' }}>
+          {/* Controls Panel */}
+          <div className="panel" style={{ position: 'sticky', top: '40px' }}>
+            <div className="panel-header">
+              <div className="panel-title"><Radio size={20} color="var(--accent-blue)" /> IoT Gateway Control</div>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div style={{ padding: '20px', backgroundColor: 'var(--bg-subpanel)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 600, fontSize: '14px' }}>Gateway Status</span>
+                  <span className="badge normal">Active</span>
+                </div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--status-normal)' }}></div>
+                  LoRaWAN Industrial Edge G24
+                </div>
+              </div>
+
+              {!isScanning && discovered.length === 0 ? (
+                <button 
+                  className="primary-btn" 
+                  onClick={startScan}
+                  style={{ width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', borderRadius: '40px' }}
+                >
+                  <Wifi size={20} /> Scan for Nearby Devices
+                </button>
+              ) : isScanning ? (
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ height: '8px', width: '100%', backgroundColor: 'var(--bg-dark)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                    <div style={{ height: '100%', width: `${progress}%`, backgroundColor: 'var(--accent-blue)', transition: 'width 0.1s linear' }}></div>
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent-blue)' }}>Scanning Frequencies... {progress}%</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ padding: '16px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', color: '#1e40af', fontSize: '14px', fontWeight: 500 }}>
+                    <Wifi size={16} style={{ marginBottom: '4px' }} />
+                    Scanning Complete. Found {discovered.length} Nodes ready for provisioning.
+                  </div>
+                  
+                  {connected.length > 0 && (
+                    <div style={{ padding: '16px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '12px', color: '#065f46', fontSize: '14px', fontWeight: 500, animation: 'fadeIn 0.3s ease-out' }}>
+                      <CheckCircle size={16} style={{ marginBottom: '4px' }} />
+                      Provisioning Successful. {connected.length} Sensors Connected to Gateway.
+                    </div>
+                  )}
+
+                  <button 
+                    className="secondary-btn" 
+                    onClick={startScan}
+                    style={{ borderRadius: '40px' }}
+                  >
+                    Rescan Frequencies
+                  </button>
+                  {connected.length > 0 && (
+                    <button 
+                      className="primary-btn" 
+                      onClick={onComplete}
+                      style={{ borderRadius: '40px', padding: '16px', marginTop: '12px', boxShadow: '0 10px 20px rgba(37, 99, 235, 0.2)' }}
+                    >
+                      Enter Facility Dashboard <ChevronRight size={20} />
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Devices List */}
+          <div className="panel" style={{ minHeight: '500px' }}>
+            <div className="panel-header">
+              <div className="panel-title"><Cpu size={20} /> Discovered & Connected Devices</div>
+              {discovered.length > 0 && connected.length < discovered.length && (
+                <button className="text-btn" onClick={connectAll} style={{ color: 'var(--accent-blue)', fontWeight: 600, cursor: 'pointer', background: 'none', border: 'none' }}>Connect All</button>
+              )}
+            </div>
+
+            {discovered.length === 0 && !isScanning ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '400px', opacity: 0.5 }}>
+                 <Wifi size={48} style={{ marginBottom: '16px' }} />
+                 <p style={{ fontWeight: 500 }}>No devices discovered yet.</p>
+                 <p style={{ fontSize: '13px' }}>Click "Scan" to find wireless sensors in range.</p>
+              </div>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {/* Connected Section */}
+                  {connected.length > 0 && (
+                    <div>
+                      <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--status-normal)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle size={14} /> Connected Nodes ({connected.length})
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {connected.map(asset => (
+                          <div key={asset.id} className="setup-device-card connected" style={{
+                            padding: '12px 16px',
+                            borderRadius: '12px',
+                            border: '1px solid #bbf7d0',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            backgroundColor: '#f0fdf4',
+                            transition: 'all 0.2s ease'
+                          }}>
+                            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                              <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+                                {asset.type === 'Pump' ? <Droplet size={16} /> : <Zap size={16} />}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: '14px' }}>{asset.id}</div>
+                                <div style={{ fontSize: '11px', color: '#166534' }}>{asset.name}</div>
+                              </div>
+                            </div>
+                            <div style={{ color: '#16a34a', fontWeight: 700, fontSize: '12px' }}>CONNECTED</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Discovered Section */}
+                  {discovered.filter(d => !connected.find(c => c.id === d.id)).length > 0 ? (
+                    <div>
+                      <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        Available for Provisioning ({discovered.length - connected.length})
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {discovered.filter(d => !connected.find(c => c.id === d.id)).map(asset => (
+                          <div key={asset.id} className="setup-device-card" style={{
+                            padding: '16px',
+                            borderRadius: '12px',
+                            border: '1px solid var(--border-color)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            backgroundColor: 'var(--bg-panel)',
+                            transition: 'all 0.2s ease'
+                          }}>
+                            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                              <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: 'var(--bg-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                                {asset.type === 'Pump' ? <Droplet size={20} /> : <Zap size={20} />}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: '15px' }}>{asset.id}</div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{asset.name} • {asset.type}</div>
+                              </div>
+                            </div>
+                            <button 
+                              className="secondary-btn" 
+                              onClick={() => connectAsset(asset)}
+                              style={{ padding: '6px 16px', fontSize: '12px', borderRadius: '20px' }}
+                            >
+                              Connect
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (discovered.length > 0 && connected.length === discovered.length) ? (
+                    <div style={{ padding: '32px', textAlign: 'center', color: 'var(--status-normal)', backgroundColor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                      <CheckCircle size={32} style={{ marginBottom: '12px' }} />
+                      <p style={{ fontWeight: 700 }}>All discovered sensors connected successfully.</p>
+                    </div>
+                  ) : null}
+                </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -366,6 +609,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
     </div>
   );
 }
+
 
 function FacilityNetwork({ assets, alerts }: { assets: Asset[], alerts: Alert[] }) {
   const resolvedAlerts = [
@@ -888,6 +1132,168 @@ function ElectricalPanels({ assets }: { assets: Asset[] }) {
           </ResponsiveContainer>
         </div>
       </div>
+    </div>
+  );
+}
+
+function SensorInventory({ assets, onAddAsset }: { assets: Asset[], onAddAsset: (a: Asset) => void }) {
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newNode, setNewNode] = useState<{id: string, name: string, type: Asset['type']}>({
+    id: '',
+    name: '',
+    type: 'Pump'
+  });
+
+  const handleAddAsset = () => {
+    if(!newNode.id || !newNode.name) return;
+    
+    const asset: Asset = {
+      id: newNode.id,
+      name: newNode.name,
+      type: newNode.type,
+      zone: 'Zone 4 - External Area',
+      status: 'normal',
+      vibration: newNode.type === 'Pump' ? 1.0 : undefined,
+      temperature: newNode.type === 'Panel' || newNode.type === 'Heater' ? 35.0 : undefined,
+      current: newNode.type === 'Motor' ? 10.0 : undefined,
+      batteryStatus: 100,
+      rssi: -55,
+      installationType: 'Retrofit - Wireless Node',
+      lastUpdated: new Date().toISOString(),
+      history: [],
+      prediction: null
+    };
+
+    onAddAsset(asset);
+    setShowAddModal(false);
+    setNewNode({ id: '', name: '', type: 'Pump' });
+  };
+
+  return (
+    <div className="panel" style={{ position: 'relative' }}>
+      <div className="panel-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="panel-title"><Cpu size={20} /> IoT Sensor Inventory & Connectivity Status</div>
+        <button className="primary-btn" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px' }}>
+          <Wifi size={16} /> Provision New Sensor
+        </button>
+      </div>
+
+      <div className="inventory-grid">
+        {assets.map(asset => (
+          <div key={asset.id} className="sensor-card">
+            <div className="sensor-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ padding: '8px', backgroundColor: 'var(--bg-subpanel)', borderRadius: '8px', color: 'var(--accent-blue)' }}>
+                  <Wifi size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '15px' }}>{asset.id.includes('-') ? `NODE-${asset.id.split('-')[1]}` : `NODE-${asset.id}`}</div>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>LoRaWAN Node v2.1</div>
+                </div>
+              </div>
+              <span className={`badge ${asset.status}`} style={{ fontSize: '10px' }}>{asset.status === 'normal' ? 'Online' : 'Warning'}</span>
+            </div>
+
+            <div style={{ padding: '12px', backgroundColor: 'var(--bg-dark)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <div className="sensor-info-row" style={{ marginBottom: '8px' }}>
+                <span>Mapped Equipment:</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>{asset.id}</span>
+              </div>
+              <div className="sensor-info-row">
+                <span>Signal Strength:</span>
+                <span style={{ color: asset.rssi! < -80 ? 'var(--status-critical)' : 'var(--status-normal)', fontWeight: 700 }}>{asset.rssi} dBm</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 600 }}>
+                <span>Battery Level</span>
+                <span style={{ color: asset.batteryStatus! < 20 ? 'var(--status-critical)' : 'inherit' }}>{asset.batteryStatus}%</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-dark)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ 
+                  width: `${asset.batteryStatus}%`, 
+                  height: '100%', 
+                  backgroundColor: asset.batteryStatus! < 20 ? 'var(--status-critical)' : 'var(--status-normal)',
+                  transition: 'width 0.5s ease'
+                }}></div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)' }}>
+                <Activity size={12} /> Last Uplink: {new Date(asset.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <button 
+                className="text-btn" 
+                style={{ fontSize: '11px', color: 'var(--accent-blue)', fontWeight: 700, padding: 0 }}
+                onClick={() => alert(`Opening advanced configuration for ${asset.id}`)}
+              >
+                Configure
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Provision New Sensor</h3>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            <div className="modal-body" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="form-group">
+                  <label>Node ID / Tag MAC</label>
+                  <input 
+                    type="text" 
+                    className="modal-select" 
+                    placeholder="e.g. SENSOR-901" 
+                    value={newNode.id} 
+                    onChange={e => setNewNode({...newNode, id: e.target.value})} 
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Asset Name</label>
+                  <input 
+                    type="text" 
+                    className="modal-select" 
+                    placeholder="e.g. Cooling Fan 5" 
+                    value={newNode.name} 
+                    onChange={e => setNewNode({...newNode, name: e.target.value})} 
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Device Type</label>
+                  <select 
+                    className="modal-select" 
+                    value={newNode.type} 
+                    onChange={e => setNewNode({...newNode, type: e.target.value as any})}
+                    style={{ width: '100%' }}
+                  >
+                    <option value="Pump">Pump-Vibration</option>
+                    <option value="Motor">Motor-Current</option>
+                    <option value="Fan">Fan-Vibration</option>
+                    <option value="Panel">Electrical Panel-Thermal</option>
+                    <option value="Heater">Heater-Thermal</option>
+                  </select>
+                </div>
+                <button 
+                  className="primary-btn" 
+                  onClick={handleAddAsset}
+                  style={{ width: '100%', marginTop: '12px' }}
+                >
+                  Confirm Provisioning
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
