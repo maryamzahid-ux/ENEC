@@ -1132,6 +1132,21 @@ body {
   to { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse-normal {
+  0% { transform: scale(0.98); opacity: 0.8; }
+  50% { transform: scale(1.02); opacity: 1; }
+  100% { transform: scale(0.98); opacity: 0.8; }
+}
+
+.pulse-normal {
+  animation: pulse-normal 2s infinite ease-in-out;
+}
+
 .text-btn:hover {
   text-decoration: underline;
 }

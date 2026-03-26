@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { initialAssets, initialAlerts, type Asset, type Alert } from './dataStore';
+import { initialAssets, initialAlerts, type Asset, type Alert, generateHistory } from './dataStore';
 import { 
   Activity, 
   AlertTriangle, 
@@ -1138,34 +1138,70 @@ function ElectricalPanels({ assets }: { assets: Asset[] }) {
 
 function SensorInventory({ assets, onAddAsset }: { assets: Asset[], onAddAsset: (a: Asset) => void }) {
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addPhase, setAddPhase] = useState<'input' | 'scanning' | 'connecting' | 'complete'>('input');
+  const [scanProgress, setScanProgress] = useState(0);
   const [newNode, setNewNode] = useState<{id: string, name: string, type: Asset['type']}>({
     id: '',
     name: '',
     type: 'Pump'
   });
 
-  const handleAddAsset = () => {
+  const startProvisioning = () => {
     if(!newNode.id || !newNode.name) return;
+    setAddPhase('scanning');
+    setScanProgress(0);
     
+    // Simulate scanning
+    const scanInterval = setInterval(() => {
+      setScanProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(scanInterval);
+          setTimeout(() => setAddPhase('connecting'), 600);
+          return 100;
+        }
+        return prev + 5;
+      });
+    }, 80);
+  };
+
+  useEffect(() => {
+    if (addPhase === 'connecting') {
+      const timer = setTimeout(() => {
+        setAddPhase('complete');
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [addPhase]);
+
+  const finalizeAdd = () => {
     const asset: Asset = {
       id: newNode.id,
       name: newNode.name,
       type: newNode.type,
       zone: 'Zone 4 - External Area',
       status: 'normal',
-      vibration: newNode.type === 'Pump' ? 1.0 : undefined,
+      vibration: newNode.type === 'Pump' || newNode.type === 'Fan' ? 1.0 : undefined,
       temperature: newNode.type === 'Panel' || newNode.type === 'Heater' ? 35.0 : undefined,
       current: newNode.type === 'Motor' ? 10.0 : undefined,
       batteryStatus: 100,
       rssi: -55,
       installationType: 'Retrofit - Wireless Node',
       lastUpdated: new Date().toISOString(),
-      history: [],
+      history: generateHistory(newNode.type, 
+        newNode.type === 'Motor' ? 10 : 
+        (newNode.type === 'Panel' || newNode.type === 'Heater' ? 35 : 1.0)),
       prediction: null
     };
 
     onAddAsset(asset);
     setShowAddModal(false);
+    setAddPhase('input');
+    setNewNode({ id: '', name: '', type: 'Pump' });
+  };
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setAddPhase('input');
     setNewNode({ id: '', name: '', type: 'Pump' });
   };
 
@@ -1174,7 +1210,7 @@ function SensorInventory({ assets, onAddAsset }: { assets: Asset[], onAddAsset: 
       <div className="panel-header" style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="panel-title"><Cpu size={20} /> IoT Sensor Inventory & Connectivity Status</div>
         <button className="primary-btn" onClick={() => setShowAddModal(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px' }}>
-          <Wifi size={16} /> Provision New Sensor
+          <Wifi size={16} /> Add New Sensor
         </button>
       </div>
 
@@ -1238,58 +1274,134 @@ function SensorInventory({ assets, onAddAsset }: { assets: Asset[], onAddAsset: 
 
       {showAddModal && (
         <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '400px' }}>
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
             <div className="modal-header">
-              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>Provision New Sensor</h3>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
+              <h3 style={{ fontSize: '18px', fontWeight: 600 }}>
+                {addPhase === 'input' ? 'Add New Sensor' : 
+                 addPhase === 'scanning' ? 'Scanning for Device' : 
+                 addPhase === 'connecting' ? 'Establishing Connection' : 
+                 'Provisioning Successful'}
+              </h3>
+              <button onClick={closeModal} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
+            
             <div className="modal-body" style={{ padding: '24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div className="form-group">
-                  <label>Node ID / Tag MAC</label>
-                  <input 
-                    type="text" 
-                    className="modal-select" 
-                    placeholder="e.g. SENSOR-901" 
-                    value={newNode.id} 
-                    onChange={e => setNewNode({...newNode, id: e.target.value})} 
-                    style={{ width: '100%' }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Asset Name</label>
-                  <input 
-                    type="text" 
-                    className="modal-select" 
-                    placeholder="e.g. Cooling Fan 5" 
-                    value={newNode.name} 
-                    onChange={e => setNewNode({...newNode, name: e.target.value})} 
-                    style={{ width: '100%' }}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Device Type</label>
-                  <select 
-                    className="modal-select" 
-                    value={newNode.type} 
-                    onChange={e => setNewNode({...newNode, type: e.target.value as any})}
-                    style={{ width: '100%' }}
+              {addPhase === 'input' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div className="form-group">
+                    <label>Node ID / Tag MAC</label>
+                    <input 
+                      type="text" 
+                      className="modal-select" 
+                      placeholder="e.g. SENSOR-901" 
+                      value={newNode.id} 
+                      onChange={e => setNewNode({...newNode, id: e.target.value})} 
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Asset Name</label>
+                    <input 
+                      type="text" 
+                      className="modal-select" 
+                      placeholder="e.g. Cooling Fan 5" 
+                      value={newNode.name} 
+                      onChange={e => setNewNode({...newNode, name: e.target.value})} 
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Device Type</label>
+                    <select 
+                      className="modal-select" 
+                      value={newNode.type} 
+                      onChange={e => setNewNode({...newNode, type: e.target.value as any})}
+                      style={{ width: '100%' }}
+                    >
+                      <option value="Pump">Pump - Vibration & Temp</option>
+                      <option value="Motor">Motor - Current & Temp</option>
+                      <option value="Fan">Fan - Vibration & Temp</option>
+                      <option value="Panel">Electrical Panel - Thermal</option>
+                      <option value="Heater">Heater - Thermal</option>
+                    </select>
+                  </div>
+                  
+                  <div style={{ padding: '16px', backgroundColor: 'var(--bg-subpanel)', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Wifi size={20} color="var(--accent-blue)" />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Gateway will attempt to discover this node via LoRaWAN/BLE protocol.</span>
+                  </div>
+
+                  <button 
+                    className="primary-btn" 
+                    onClick={startProvisioning}
+                    disabled={!newNode.id || !newNode.name}
+                    style={{ width: '100%', marginTop: '12px', opacity: (!newNode.id || !newNode.name) ? 0.6 : 1 }}
                   >
-                    <option value="Pump">Pump-Vibration</option>
-                    <option value="Motor">Motor-Current</option>
-                    <option value="Fan">Fan-Vibration</option>
-                    <option value="Panel">Electrical Panel-Thermal</option>
-                    <option value="Heater">Heater-Thermal</option>
-                  </select>
+                    Confirm & Start Scan
+                  </button>
                 </div>
-                <button 
-                  className="primary-btn" 
-                  onClick={handleAddAsset}
-                  style={{ width: '100%', marginTop: '12px' }}
-                >
-                  Confirm Provisioning
-                </button>
-              </div>
+              )}
+
+              {addPhase === 'scanning' && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 10px', textAlign: 'center' }}>
+                  <div style={{ position: 'relative', marginBottom: '24px' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '4px solid #eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-blue)' }}>
+                      <Wifi size={32} />
+                    </div>
+                    <div style={{ position: 'absolute', top: '-4px', left: '-4px', width: '88px', height: '88px', borderRadius: '50%', border: '4px solid var(--accent-blue)', borderTopColor: 'transparent', animation: 'spin 1.5s linear infinite' }}></div>
+                  </div>
+                  <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Scanning Frequencies...</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Looking for node <strong>{newNode.id}</strong> on industrial gateway...</p>
+                  
+                  <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--bg-dark)', borderRadius: '4px', overflow: 'hidden', marginBottom: '12px' }}>
+                    <div style={{ width: `${scanProgress}%`, height: '100%', backgroundColor: 'var(--accent-blue)', transition: 'width 0.1s linear' }}></div>
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--accent-blue)' }}>{scanProgress}% Signal Acquisition</span>
+                </div>
+              )}
+
+              {addPhase === 'connecting' && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 10px', textAlign: 'center' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                    <Activity size={32} />
+                  </div>
+                  <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Device Found!</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Negotiating secure on-prem encryption with <strong>{newNode.id}</strong>...</p>
+                  
+                  <div className="pulse-normal" style={{ padding: '12px 24px', backgroundColor: '#f0fdf4', borderRadius: '24px', color: '#166534', fontWeight: 700, fontSize: '14px', border: '1px solid #bbf7d0' }}>
+                    Establishing Secure Link...
+                  </div>
+                </div>
+              )}
+
+              {addPhase === 'complete' && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 10px', textAlign: 'center' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', backgroundColor: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '24px' }}>
+                    <CheckCircle size={40} />
+                  </div>
+                  <h3 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '8px' }}>Provisioning Complete</h3>
+                  <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>The wireless node has been successfully paired and is now transmitting telemetry to the local data layer.</p>
+                  
+                  <div style={{ width: '100%', padding: '20px', backgroundColor: 'var(--bg-dark)', borderRadius: '12px', border: '1px solid var(--border-color)', marginBottom: '32px', textAlign: 'left' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Asset Mapping</span>
+                      <span style={{ fontWeight: 700 }}>{newNode.id}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Node Version</span>
+                      <span style={{ fontWeight: 700 }}>v2.1 (Industrial Retrofit)</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Status</span>
+                      <span style={{ color: '#16a34a', fontWeight: 700 }}>ENCRYPTED & CONNECTED</span>
+                    </div>
+                  </div>
+
+                  <button className="primary-btn" onClick={finalizeAdd} style={{ width: '100%', padding: '16px', borderRadius: '40px', fontSize: '16px' }}>
+                    View in Inventory & Dashboard
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

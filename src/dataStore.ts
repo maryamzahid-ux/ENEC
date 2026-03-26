@@ -33,7 +33,7 @@ export interface Alert {
   active: boolean;
 }
 
-const generateHistory = (type: 'Pump' | 'Motor' | 'Heater' | 'Fan' | 'Panel', baseVal: number, baseTemp?: number) => {
+export const generateHistory = (type: 'Pump' | 'Motor' | 'Heater' | 'Fan' | 'Panel', baseVal: number, baseTemp?: number) => {
   const history = [];
   const now = new Date();
   for (let i = 24; i >= 0; i--) {
